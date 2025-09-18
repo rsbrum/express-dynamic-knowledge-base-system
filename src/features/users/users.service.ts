@@ -2,6 +2,6 @@ export class UsersService {
   constructor() {}
 
 	getUsers() {
-		return 'LOOOL';
+		return 'Users fetched successfully';
 	}
 }
