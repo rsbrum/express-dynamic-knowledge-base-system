@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import registerRoutes from '@/core/registerRoutes';
 import Logger from '@/core/logger';
 import { AppDataSource } from '@/core/database/data-source';
+import cors from 'cors';
 
 export class App {
   public app: Application;
@@ -16,6 +17,7 @@ export class App {
 
   private initializeMiddlewares() {
     this.app.use(express.json());
+    this.app.use(cors());
   }
 
   private initializeRoutes() {

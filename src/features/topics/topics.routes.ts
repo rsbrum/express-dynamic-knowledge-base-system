@@ -16,6 +16,7 @@ export class TopicsRoutes extends BaseApplicationRoute {
 
   protected registerRoutes() {
     this.router.get('/', (req, res) => this.topicsController.getTopics(req, res));
+    this.router.post('/', (req, res) => this.topicsController.createTopic(req, res));
     this.logger.log('routes registered');
   }
 }
