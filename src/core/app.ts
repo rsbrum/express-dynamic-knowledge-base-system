@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import registerRoutes from '@/core/registerRoutes';
-import Logger from '@/core/Logger';
+import Logger from '@/core/logger';
+import { AppDataSource } from '@/core/database/data-source';
 
 export class App {
   public app: Application;
@@ -21,9 +22,16 @@ export class App {
     registerRoutes(this.app);
   }
 
-  public listen(port: number) {
-    this.app.listen(port, () => {
-      this.logger.log(`Server running on port: ${port}`);
-    });
+  public async start(port: number) {
+    try {
+      await AppDataSource.initialize();
+      this.logger.log('Database initialized');
+
+      this.app.listen(port, () => {
+        this.logger.log(`Server running on port: ${port}`);
+      });
+    } catch (error) {
+      this.logger.error('Error initializing application', error as string);
+    }
   }
 }

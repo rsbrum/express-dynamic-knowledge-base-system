@@ -1,4 +1,4 @@
 import { App } from '@/core/app';
 
 const app = new App();
-app.listen(3000);
+app.start(3000);

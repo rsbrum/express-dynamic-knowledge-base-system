@@ -18,7 +18,10 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "tsconfig-paths": "^4.2.0"
+    "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
+    "tsconfig-paths": "^4.2.0",
+    "typeorm": "^0.3.26"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
