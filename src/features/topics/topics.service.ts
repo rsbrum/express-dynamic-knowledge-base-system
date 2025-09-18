@@ -36,9 +36,7 @@ export class TopicsService {
       }
     }
 
-    this.logger.log(rootTopics);
-
-    return topics;
+    return topics.filter((topic) => topic.parentTopicId === null);
   }
 
   dfs(topic: TopicDto) {
