@@ -1,7 +1,14 @@
-export class UsersService {
-  constructor() {}
+import { UserRepository } from '@/features/users/users.repository';
 
-	getUsers() {
-		return 'Users fetched successfully';
-	}
+export class UsersService {
+  private userRepository: UserRepository;
+
+  constructor() {
+    this.userRepository = new UserRepository();
+  }
+
+  getUsers() {
+    return this.userRepository.findAllUsers();
+  }
+
 }

@@ -2,18 +2,26 @@ import { Router } from "express";
 import IApplicationRoute from "@/lib/IApplicationRoute";
 
 export abstract class BaseApplicationRoute implements IApplicationRoute {
-	protected router: Router;
+  protected router: Router;
+  private initialized: boolean = false;
 
-	constructor() {
-		this.router = Router();
-		this.initializeDependencies();
-		this.registerRoutes();
-	}
+  constructor() {
+    this.router = Router();
+  }
 
-	public getRouter(): Router {
-		return this.router;
-	}
+  private initialize(): void {
+    if (!this.initialized) {
+      this.initializeDependencies();
+      this.registerRoutes();
+      this.initialized = true;
+    }
+  }
 
-	protected abstract initializeDependencies(): void;
-	protected abstract registerRoutes(): void;
+  public getRouter(): Router {
+    this.initialize();
+    return this.router;
+  }
+
+  protected abstract initializeDependencies(): void;
+  protected abstract registerRoutes(): void;
 }
