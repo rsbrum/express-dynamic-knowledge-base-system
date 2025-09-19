@@ -82,7 +82,6 @@ export class TopicsService {
     const rootComponent = new TopicComposite(topicVersion);
 
     await this.buildTopicTree(rootComponent);
-    // TODO fix this return type
     return rootComponent.toTreeStructure();
   }
 
