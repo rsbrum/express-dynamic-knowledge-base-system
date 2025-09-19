@@ -129,7 +129,36 @@ export class TopicsService {
     return createdVersion;
   }
 
-  deleteTopic(id: number) {
-    return 'Deleted';
+  async deleteTopic(id: number): Promise<boolean> {
+    const tree = await this.getTopic(id);
+
+    if (!tree) {
+      this.logger.warn(`Topic version for topic ${id} not found`);
+      return false;
+    }
+
+    const topicsToDelete = new Set<number>();
+
+    function traverseTree(tree: IHierarchicalTopicVersion) {
+      topicsToDelete.add(tree.topicId);
+      for (const child of tree.children || []) {
+        traverseTree(child);
+      }
+    }
+
+    traverseTree(tree);
+
+    for (const topicId of topicsToDelete) {
+      const topicVersions = await this.topicVersionsRepository.findByTopicId(topicId);
+      for (const version of topicVersions) {
+        await this.topicVersionsRepository.delete(version.id);
+      }
+    }
+
+    for (const topicId of topicsToDelete) {
+      await this.topicsRepository.delete(topicId);
+    }
+
+    return true;
   }
 }

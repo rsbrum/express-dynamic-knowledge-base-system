@@ -1,10 +1,10 @@
 import { BaseRepository } from "@/lib/BaseRepository";
 import { Topic } from "@/features/topics/topic.entity";
+import Logger from '@/core/logger';
 
 export class TopicsRepository extends BaseRepository<Topic> {
-  deleteTopic(id: number) {
-    throw new Error('Method not implemented.');
-  }
+  private logger = new Logger(TopicsRepository.name);
+
   constructor() {
     super(Topic);
   }
@@ -22,8 +22,13 @@ export class TopicsRepository extends BaseRepository<Topic> {
     return await this.repository.findOne({ where: { id } });
   }
 
-  async findByParentId(parentId: number): Promise<Topic[]> {
-    return [];
-    //return await this.repository.find({ where: { parentTopicId: parentId } });
+  async delete(id: number) {
+    const topic = await this.repository.findOneBy({ id });
+    if (!topic) {
+      this.logger.warn(`Topic not found for id: ${id}`);
+      return;
+    }
+
+    return await this.repository.remove(topic);
   }
 }

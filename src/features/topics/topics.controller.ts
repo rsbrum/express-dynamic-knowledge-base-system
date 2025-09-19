@@ -163,7 +163,12 @@ export class TopicsController {
         ErrorResponse.badRequest('Invalid request', 'Topic ID is required').send(res, 400);
         return;
       }
-      await this.topicsService.deleteTopic(+id);
+
+      const result = await this.topicsService.deleteTopic(+id);
+      if (!result) {
+        ErrorResponse.notFound('Topic not found').send(res, 404);
+        return;
+      }
 
       this.logger.log(`Topic deleted: ${id}`);
       DataResponse.success(null, 'Topic deleted successfully').send(res);
