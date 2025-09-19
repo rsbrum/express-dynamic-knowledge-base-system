@@ -90,6 +90,20 @@ export class TopicsService {
     return rootComponent.toTreeStructure();
   }
 
+  async getTopicByVersion(topicId: number, version: number): Promise<ITopicTree | null> {
+    const topicVersion = await this.topicVersionsRepository.findByVersion(topicId, version);
+    if (!topicVersion) {
+      this.logger.warn(`Topic version for topic ${topicId} and version ${version} not found`);
+      return null;
+    }
+
+    const rootComponent = new TopicComposite(topicVersion);
+
+    await this.buildTopicTree(rootComponent);
+
+    return rootComponent.toTreeStructure();
+  }
+
   private async buildTopicTree(
     parentComponent: TopicComposite,
   ): Promise<TopicComponent | undefined> {
@@ -109,10 +123,7 @@ export class TopicsService {
     return;
   }
 
-  updateTopic(
-    id: number,
-    topicPayload: { name: string; content: string; parentTopicId: number | null },
-  ) {
+  updateTopic(id: number, topicPayload: Partial<TopicVersion>) {
     return 'Updated';
   }
 

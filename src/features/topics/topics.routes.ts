@@ -17,6 +17,9 @@ export class TopicsRoutes extends BaseApplicationRoute {
   protected registerRoutes() {
     this.router.get('/', (req, res) => this.topicsController.getTopics(req, res));
     this.router.get('/:id', (req, res) => this.topicsController.getTopic(req, res));
+    this.router.get('/:id/version/:version', (req, res) =>
+      this.topicsController.getTopicByVersion(req, res),
+    );
     this.router.put('/:id', (req, res) => this.topicsController.updateTopic(req, res));
     this.router.post('/', (req, res) => this.topicsController.createTopic(req, res));
     this.router.delete('/:id', (req, res) => this.topicsController.deleteTopic(req, res));

@@ -30,7 +30,7 @@ export class TopicVersionsRepository extends BaseRepository<TopicVersion> {
     return await this.repository.findOne({ where: { topicId }, order: { version: 'DESC' } });
   }
 
-  async findSpecificVersion(topicId: number, version: number): Promise<TopicVersion | null> {
+  async findByVersion(topicId: number, version: number): Promise<TopicVersion | null> {
     return await this.repository.findOne({ where: { topicId, version } });
   }
 }

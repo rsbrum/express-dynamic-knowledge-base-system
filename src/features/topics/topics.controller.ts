@@ -5,7 +5,6 @@ import { TopicPayloadSchema } from '@/lib/TopicPayloadSchema';
 import Logger from '@/core/logger';
 import { ErrorResponse } from '@/lib/ErrorResponse';
 import { DataResponse } from '@/lib/PayloadResponse';
-import { Topic } from '@/features/topics/topic.entity';
 
 export class TopicsController {
   private logger = new Logger(TopicsController.name);
@@ -83,6 +82,39 @@ export class TopicsController {
       }
 
       const topic = await this.topicsService.getTopic(+id);
+
+      if (!topic) {
+        ErrorResponse.notFound('Topic not found').send(res, 404);
+        return;
+      }
+
+      DataResponse.success(topic, 'Topic fetched successfully').send(res);
+    } catch (error) {
+      this.logger.error(
+        'Failed to get topic',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+      ErrorResponse.internal(
+        'Failed to get topic',
+        error instanceof Error ? error.message : 'Unknown error',
+      ).send(res, 500);
+    }
+  }
+
+  async getTopicByVersion(req: Request, res: Response) {
+    try {
+      const topicId = req.params['id'];
+      const version = req.params['version'];
+
+      if (!topicId || !version) {
+        ErrorResponse.badRequest('Invalid request', 'Topic ID and version are required').send(
+          res,
+          400,
+        );
+        return;
+      }
+
+      const topic = await this.topicsService.getTopicByVersion(+topicId, +version);
 
       if (!topic) {
         ErrorResponse.notFound('Topic not found').send(res, 404);
