@@ -11,11 +11,11 @@ export class UsersRoutes extends BaseApplicationRoute {
   protected initializeDependencies(): void {
     this.usersService = new UsersService();
     this.usersController = new UsersController(this.usersService);
-    this.logger.log('dependencies initialized');
+    this.logger.log('Dependencies initialized');
   }
 
   protected registerRoutes(): void {
     this.router.get('/', (req, res) => this.usersController.getUsers(req, res));
-    this.logger.log('routes registered');
+    this.logger.log('Routes registered');
   }
 }

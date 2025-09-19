@@ -10,12 +10,12 @@ export class ResourcesRoutes extends BaseApplicationRoute {
 
   protected registerRoutes() {
     this.router.get('/', (req, res) => this.resourcesController.getResources(req, res));
-    this.logger.log('routes registered');
+    this.logger.log('Routes registered');
   }
 
   protected initializeDependencies() {
     this.resourcesService = new ResourcesService();
     this.resourcesController = new ResourcesController(this.resourcesService);
-    this.logger.log('dependencies initialized');
+    this.logger.log('Dependencies initialized');
   }
 }

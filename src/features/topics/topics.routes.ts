@@ -11,12 +11,16 @@ export class TopicsRoutes extends BaseApplicationRoute {
   protected initializeDependencies() {
     this.topicsService = new TopicsService();
     this.topicsController = new TopicsController(this.topicsService);
-    this.logger.log('dependencies initialized');
+    this.logger.log('Dependencies initialized');
   }
 
   protected registerRoutes() {
     this.router.get('/', (req, res) => this.topicsController.getTopics(req, res));
+    this.router.get('/:id', (req, res) => this.topicsController.getTopic(req, res));
+    this.router.put('/:id', (req, res) => this.topicsController.updateTopic(req, res));
     this.router.post('/', (req, res) => this.topicsController.createTopic(req, res));
-    this.logger.log('routes registered');
+    this.router.delete('/:id', (req, res) => this.topicsController.deleteTopic(req, res));
+
+    this.logger.log('Routes registered');
   }
 }
