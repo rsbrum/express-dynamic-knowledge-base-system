@@ -1,5 +1,15 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Topic } from "./topic.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Topic } from '@/features/topics/topic.entity';
+import { Resource } from '@/features/resources/resource.entity';
 
 @Entity()
 export class TopicVersion {
@@ -24,10 +34,13 @@ export class TopicVersion {
   @Column('int', { nullable: true })
   parentTopicId!: number | null;
 
-	@Column('int')
-	topicId!: number;
+  @Column('int')
+  topicId!: number;
 
-	@ManyToOne(() => Topic)
-	@JoinColumn({ name: 'topicId' })
-	topic!: Topic;
+  @ManyToOne(() => Topic)
+  @JoinColumn({ name: 'topicId' })
+  topic!: Topic;
+
+  @OneToMany(() => Resource, (resource) => resource.topicVersion, { eager: true })
+  resources!: Resource[];
 }

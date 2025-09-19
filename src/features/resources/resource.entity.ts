@@ -1,4 +1,13 @@
-import { PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Entity } from "typeorm";
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Entity,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { TopicVersion } from '@/features/topics/topic-version.entity';
 
 @Entity()
 export class Resource {
@@ -6,7 +15,14 @@ export class Resource {
   id!: number;
 
   @Column('int')
+  topicVersionId!: number;
+
+  @Column('int')
   topicId!: number;
+
+  @ManyToOne(() => TopicVersion)
+  @JoinColumn({ name: 'topicVersionId' })
+  topicVersion!: TopicVersion;
 
   @Column()
   url!: string;

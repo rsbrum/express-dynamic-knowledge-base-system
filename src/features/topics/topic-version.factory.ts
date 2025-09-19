@@ -1,13 +1,18 @@
 import { TopicVersion } from '@/features/topics/topic-version.entity';
 
+
 export class TopicVersionFactory {
-  static createNewVersion(topicVersion: Partial<TopicVersion>): TopicVersion {
+  static create(
+    currentTopicVersion: TopicVersion,
+    newTopicVersion: Partial<TopicVersion>,
+  ): TopicVersion {
     const newVersion = new TopicVersion();
-    newVersion.name = topicVersion.name!;
-    newVersion.content = topicVersion.content!;
-    newVersion.version = topicVersion.version! + 1;
-    newVersion.topicId = topicVersion.topicId!;
-    newVersion.parentTopicId = topicVersion.parentTopicId!;
+    newVersion.name = newTopicVersion.name!;
+    newVersion.content = newTopicVersion.content!;
+    newVersion.version = currentTopicVersion.version + 1;
+    newVersion.topicId = currentTopicVersion.topicId;
+    newVersion.parentTopicId = newTopicVersion.parentTopicId!;
+    newVersion.resources = currentTopicVersion.resources;
 
     return newVersion;
   }

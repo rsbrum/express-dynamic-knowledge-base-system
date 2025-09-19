@@ -18,7 +18,7 @@ export abstract class TopicComponent {
   }
 
   toTreeStructure(): IHierarchicalTopicVersion {
-    const result = {
+    const result: IHierarchicalTopicVersion = {
       id: this.topicVersion.topicId,
       name: this.topicVersion.name,
       content: this.topicVersion.content,
@@ -28,6 +28,7 @@ export abstract class TopicComponent {
       version: this.topicVersion.version,
       topicId: this.topicVersion.topicId,
       children: this.getChildren().map((child) => child.toTreeStructure()),
+      resources: this.topicVersion.resources,
     };
 
     return result;

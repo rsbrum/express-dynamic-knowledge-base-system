@@ -7,16 +7,24 @@ import { TopicComposite } from '@/features/topics/topic-version.composite';
 import { TopicComponent } from '@/features/topics/topic-version.component';
 import { TopicVersionFactory } from '@/features/topics/topic-version.factory';
 import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
+import { ResourcesRepository } from '@/features/resources/resources.repository';
 
+// todo
+// create topicsversion service and move all
+// topicversion related files to a specific folder
 export class TopicsService {
   private topicsRepository: TopicsRepository;
   private topicVersionsRepository: TopicVersionsRepository;
+  private resourcesRepository: ResourcesRepository;
 
   private logger = new Logger(TopicsService.name);
 
+  // todo
+  // dependencies should be injected
   constructor() {
     this.topicsRepository = new TopicsRepository();
     this.topicVersionsRepository = new TopicVersionsRepository();
+    this.resourcesRepository = new ResourcesRepository();
   }
 
   async createTopic(topic: Partial<TopicVersion>): Promise<TopicVersion> {
@@ -121,9 +129,13 @@ export class TopicsService {
     return;
   }
 
-  async updateTopic(id: number, topicPayload: Partial<TopicVersion>): Promise<TopicVersion> {
-    const newVersion = TopicVersionFactory.createNewVersion(topicPayload);
+  async updateTopic(id: number, topic: Partial<TopicVersion>): Promise<TopicVersion> {
+    const currentVersion = await this.topicVersionsRepository.findLatestVersion(id);
+    if (!currentVersion) {
+      throw new Error(`Topic with id ${id} not found`);
+    }
 
+    const newVersion = await TopicVersionFactory.create(currentVersion, topic);
     const createdVersion = await this.topicVersionsRepository.createTopicVersion(newVersion);
 
     return createdVersion;
@@ -147,6 +159,16 @@ export class TopicsService {
     }
 
     traverseTree(tree);
+
+    for (const topicId of topicsToDelete) {
+      const topicVersions = await this.topicVersionsRepository.findByTopicId(topicId);
+      for (const version of topicVersions) {
+        const resources = await this.resourcesRepository.findByTopicVersionId(version.id);
+        for (const resource of resources) {
+          await this.resourcesRepository.delete(resource.id);
+        }
+      }
+    }
 
     for (const topicId of topicsToDelete) {
       const topicVersions = await this.topicVersionsRepository.findByTopicId(topicId);
