@@ -14,6 +14,10 @@ export class TopicVersionsRepository extends BaseRepository<TopicVersion> {
     return await this.repository.save(topicVersion);
   }
 
+  async findLatestVersionByTopicId(topicId: number): Promise<TopicVersion | null> {
+    return await this.repository.findOne({ where: { topicId }, order: { version: 'DESC' } });
+  }
+
   async findById(id: number): Promise<TopicVersion | null> {
     return await this.repository.findOne({ where: { id } });
   }
@@ -22,11 +26,11 @@ export class TopicVersionsRepository extends BaseRepository<TopicVersion> {
     return await this.repository.find({ where: { parentTopicId: parentId } });
   }
 
-	async findLatestVersion(topicId: number): Promise<TopicVersion | null> {
-		return await this.repository.findOne({ where: { topicId }, order: { version: 'DESC' } });
-	}
+  async findLatestVersion(topicId: number): Promise<TopicVersion | null> {
+    return await this.repository.findOne({ where: { topicId }, order: { version: 'DESC' } });
+  }
 
-	async findSpecificVersion(topicId: number, version: number): Promise<TopicVersion | null> {
-		return await this.repository.findOne({ where: { topicId, version } });
-	}
+  async findSpecificVersion(topicId: number, version: number): Promise<TopicVersion | null> {
+    return await this.repository.findOne({ where: { topicId, version } });
+  }
 }
