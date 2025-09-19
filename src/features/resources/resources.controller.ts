@@ -2,10 +2,10 @@ import { ResourcesService } from '@/features/resources/resources.service';
 import { Request, Response } from 'express';
 import { DataResponse } from '@/lib/PayloadResponse';
 import { ErrorResponse } from '@/lib/ErrorResponse';
-import { ResourceCreatePayloadSchema } from '@/lib/ResouceCreatePayload';
+import { ResourceCreatePayloadSchema } from '@/lib/ResouceCreatePayloadSchema';
 import Logger from '@/core/logger';
 import { z } from 'zod';
-import { ResourceUpdatePayloadSchema } from '@/lib/ResourceUpdatePayload';
+import { ResourceUpdatePayloadSchema } from '@/lib/ResourceUpdatePayloadSchema';
 
 export class ResourcesController {
   private logger = new Logger(ResourcesController.name);
@@ -26,14 +26,19 @@ export class ResourcesController {
         ErrorResponse.validation().send(res, 400);
         this.logger.error('Validation error', error.message);
       } else {
-        this.logger.error(
-          'Failed to create resource',
-          error instanceof Error ? error.message : 'Unknown error',
-        );
-        ErrorResponse.internal(
-          'Failed to create resource',
-          error instanceof Error ? error.message : 'Unknown error',
-        ).send(res, 500);
+        if (error instanceof z.ZodError) {
+          ErrorResponse.validation().send(res, 400);
+          this.logger.error('Validation error', error.message);
+        } else {
+          this.logger.error(
+            'Failed to create resource',
+            error instanceof Error ? error.message : 'Unknown error',
+          );
+          ErrorResponse.internal(
+            'Failed to create resource',
+            error instanceof Error ? error.message : 'Unknown error',
+          ).send(res, 500);
+        }
       }
     }
   }
@@ -56,10 +61,19 @@ export class ResourcesController {
       this.logger.log(`Resource updated: ${resource.id} ${resource.url}`);
       DataResponse.success(resource, 'Resource updated successfully').send(res);
     } catch (error) {
-      ErrorResponse.internal(
-        'Failed to update resource',
-        error instanceof Error ? error.message : 'Unknown error',
-      ).send(res);
+      if (error instanceof z.ZodError) {
+        ErrorResponse.validation().send(res, 400);
+        this.logger.error('Validation error', error.message);
+      } else {
+        this.logger.error(
+          'Failed to update resource',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
+        ErrorResponse.internal(
+          'Failed to update resource',
+          error instanceof Error ? error.message : 'Unknown error',
+        ).send(res);
+      }
     }
   }
 

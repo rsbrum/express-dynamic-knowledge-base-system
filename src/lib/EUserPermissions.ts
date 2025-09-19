@@ -1,5 +1,6 @@
 export enum EUserPermissions {
-	CAN_VIEW = 'CAN_VIEW',
-	CAN_EDIT = 'CAN_EDIT',
-	CAN_DELETE = 'CAN_DELETE',
+  CAN_VIEW = 'CAN_VIEW',
+  CAN_EDIT = 'CAN_EDIT',
+  CAN_DELETE = 'CAN_DELETE',
+  CAN_MANAGE_USERS = 'CAN_MANAGE_USERS',
 }

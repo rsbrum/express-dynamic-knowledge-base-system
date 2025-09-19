@@ -10,12 +10,14 @@ export function getPermissionsForRole(role: EUserRole): IUserPermissions {
         [EUserPermissions.CAN_VIEW]: true,
         [EUserPermissions.CAN_EDIT]: true,
         [EUserPermissions.CAN_DELETE]: true,
+        [EUserPermissions.CAN_MANAGE_USERS]: true,
       };
     case EUserRole.EDITOR:
       return {
         [EUserPermissions.CAN_VIEW]: true,
         [EUserPermissions.CAN_EDIT]: true,
         [EUserPermissions.CAN_DELETE]: false,
+        [EUserPermissions.CAN_MANAGE_USERS]: false,
       };
     case EUserRole.VIEWER:
     default:
@@ -23,6 +25,7 @@ export function getPermissionsForRole(role: EUserRole): IUserPermissions {
         [EUserPermissions.CAN_VIEW]: true,
         [EUserPermissions.CAN_EDIT]: false,
         [EUserPermissions.CAN_DELETE]: false,
+        [EUserPermissions.CAN_MANAGE_USERS]: false,
       };
   }
 }
