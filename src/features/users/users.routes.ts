@@ -1,6 +1,9 @@
 import { UsersController } from '@/features/users/users.controller';
 import { UsersService } from '@/features/users/users.service';
 import { BaseApplicationRoute } from '@/lib/BaseApplicationRoute';
+import { AuthMiddleware } from '@/core/middlewares/auth.middleware';
+import { PermissionsMiddleware } from '@/core/middlewares/permissions.middleware';
+import { EUserPermissions } from '@/lib/EUserPermissions';
 import Logger from '@/core/logger';
 
 export class UsersRoutes extends BaseApplicationRoute {
@@ -15,7 +18,11 @@ export class UsersRoutes extends BaseApplicationRoute {
   }
 
   protected registerRoutes(): void {
+    this.router.use(AuthMiddleware.authenticate);
+    this.router.use(PermissionsMiddleware.attachPermissions);
+
     this.router.get('/', (req, res) => this.usersController.getUsers(req, res));
-    this.logger.log('Routes registered');
+
+    this.logger.log('Routes registered with permissions');
   }
 }
