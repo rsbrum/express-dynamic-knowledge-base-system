@@ -164,6 +164,8 @@ export class TopicsController {
         return;
       }
       await this.topicsService.deleteTopic(+id);
+
+      this.logger.log(`Topic deleted: ${id}`);
       DataResponse.success(null, 'Topic deleted successfully').send(res);
     } catch (error) {
       this.logger.error(

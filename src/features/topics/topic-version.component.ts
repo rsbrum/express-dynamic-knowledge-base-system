@@ -1,4 +1,5 @@
 import { TopicVersion } from "@/features/topics/topic-version.entity";
+import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
 
 export abstract class TopicComponent {
   constructor(protected topicVersion: TopicVersion) {}
@@ -16,10 +17,7 @@ export abstract class TopicComponent {
     return this.topicVersion;
   }
 
-  // TODO
-  // remove any
-  // maybe use itopictree
-  toTreeStructure(): any {
+  toTreeStructure(): IHierarchicalTopicVersion {
     const result = {
       id: this.topicVersion.topicId,
       name: this.topicVersion.name,

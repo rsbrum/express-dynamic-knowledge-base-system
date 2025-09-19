@@ -1,5 +1,4 @@
 import { Topic } from '@/features/topics/topic.entity';
-import { ITopicTree } from '@/lib/ITopicTree';
 import { TopicsRepository } from '@/features/topics/topics.repository';
 import Logger from '@/core/logger';
 import { TopicVersion } from '@/features/topics/topic-version.entity';
@@ -7,6 +6,7 @@ import { TopicVersionsRepository } from '@/features/topics/topic-version.reposit
 import { TopicComposite } from '@/features/topics/topic-version.composite';
 import { TopicComponent } from '@/features/topics/topic-version.component';
 import { TopicVersionFactory } from '@/features/topics/topic-version.factory';
+import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
 
 export class TopicsService {
   private topicsRepository: TopicsRepository;
@@ -31,7 +31,7 @@ export class TopicsService {
     return newTopicVersion;
   }
 
-  async getTopics(): Promise<ITopicTree[]> {
+  async getTopics(): Promise<IHierarchicalTopicVersion[]> {
     const topics: Topic[] = await this.topicsRepository.findAllTopics();
     const topicVersions: TopicVersion[] = [];
 
@@ -72,7 +72,7 @@ export class TopicsService {
     return rootComponents.map((component) => component.toTreeStructure());
   }
 
-  async getTopic(id: number): Promise<ITopicTree | null> {
+  async getTopic(id: number): Promise<IHierarchicalTopicVersion | null> {
     const topicVersion = await this.topicVersionsRepository.findLatestVersion(id);
     if (!topicVersion) {
       this.logger.warn(`Topic version for topic ${id} not found`);
@@ -86,7 +86,10 @@ export class TopicsService {
     return rootComponent.toTreeStructure();
   }
 
-  async getTopicByVersion(topicId: number, version: number): Promise<ITopicTree | null> {
+  async getTopicByVersion(
+    topicId: number,
+    version: number,
+  ): Promise<IHierarchicalTopicVersion | null> {
     const topicVersion = await this.topicVersionsRepository.findByVersion(topicId, version);
     if (!topicVersion) {
       this.logger.warn(`Topic version for topic ${topicId} and version ${version} not found`);
