@@ -1,7 +1,8 @@
 import { TopicsService } from '@/features/topics/topics.service';
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { TopicPayloadSchema } from '@/lib/TopicPayloadSchema';
+import { TopicCreatePayloadSchema } from '@/lib/TopicCreatePayloadSchema';
+import { TopicUpdatePayloadSchema } from '@/lib/TopicUpdatePayloadSchema';
 import Logger from '@/core/logger';
 import { ErrorResponse } from '@/lib/ErrorResponse';
 import { DataResponse } from '@/lib/PayloadResponse';
@@ -12,7 +13,7 @@ export class TopicsController {
 
   async createTopic(req: Request, res: Response) {
     try {
-      const topicPayload = TopicPayloadSchema.parse(req.body);
+      const topicPayload = TopicCreatePayloadSchema.parse(req.body);
 
       const result = await this.topicsService.createTopic(topicPayload);
 
@@ -22,7 +23,12 @@ export class TopicsController {
     } catch (error) {
       if (error instanceof z.ZodError) {
         ErrorResponse.validation().send(res, 400);
+        this.logger.error('Validation error', error.message);
       } else {
+        this.logger.error(
+          'Failed to create topic',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
         ErrorResponse.internal(
           'Failed to create topic',
           error instanceof Error ? error.message : 'Unknown error',
@@ -35,6 +41,7 @@ export class TopicsController {
     try {
       const topics = await this.topicsService.getTopics();
 
+      this.logger.log(`Topics fetched: ${topics.length}`);
       DataResponse.success(topics, 'Topics fetched').send(res);
     } catch (error) {
       this.logger.error(
@@ -50,7 +57,7 @@ export class TopicsController {
 
   async updateTopic(req: Request, res: Response) {
     try {
-      const topicPayload = TopicPayloadSchema.parse(req.body);
+      const topicPayload = TopicUpdatePayloadSchema.parse(req.body);
       const id = req.params['id'];
       if (!id) {
         ErrorResponse.badRequest('Invalid request', 'Topic ID is required').send(res, 400);
@@ -59,16 +66,23 @@ export class TopicsController {
 
       const topic = await this.topicsService.updateTopic(+id, topicPayload);
 
+      this.logger.log(`Topic updated: ${topic.id} ${topic.name}`);
+
       DataResponse.success(topic, 'Topic updated successfully').send(res);
     } catch (error) {
-      this.logger.error(
-        'Failed to update topic',
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-      ErrorResponse.internal(
-        'Failed to update topic',
-        error instanceof Error ? error.message : 'Unknown error',
-      ).send(res, 500);
+      if (error instanceof z.ZodError) {
+        ErrorResponse.validation().send(res, 400);
+        this.logger.error('Validation error', error.message);
+      } else {
+        this.logger.error(
+          'Failed to update topic',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
+        ErrorResponse.internal(
+          'Failed to update topic',
+          error instanceof Error ? error.message : 'Unknown error',
+        ).send(res, 500);
+      }
     }
   }
 
@@ -82,6 +96,12 @@ export class TopicsController {
       }
 
       const topic = await this.topicsService.getTopic(+id);
+      if (!topic) {
+        ErrorResponse.notFound('Topic not found').send(res, 404);
+        return;
+      }
+
+      this.logger.log(`Topic fetched: ${topic.id}`);
 
       if (!topic) {
         ErrorResponse.notFound('Topic not found').send(res, 404);
@@ -120,6 +140,8 @@ export class TopicsController {
         ErrorResponse.notFound('Topic not found').send(res, 404);
         return;
       }
+
+      this.logger.log(`Topic fetched: ${topic?.id}`);
 
       DataResponse.success(topic, 'Topic fetched successfully').send(res);
     } catch (error) {

@@ -6,6 +6,7 @@ import { TopicVersion } from '@/features/topics/topic-version.entity';
 import { TopicVersionsRepository } from '@/features/topics/topic-version.repository';
 import { TopicComposite } from '@/features/topics/topic-version.composite';
 import { TopicComponent } from '@/features/topics/topic-version.component';
+import { TopicVersionFactory } from '@/features/topics/topic-version.factory';
 
 export class TopicsService {
   private topicsRepository: TopicsRepository;
@@ -20,16 +21,11 @@ export class TopicsService {
 
   async createTopic(topic: Partial<TopicVersion>): Promise<TopicVersion> {
     const newTopic = await this.topicsRepository.createTopic();
-    // TODO
-    // because its a new topic, the version is always 1
-    const latestTopicVersion = await this.topicVersionsRepository.findLatestVersionByTopicId(
-      newTopic.id,
-    );
-    const version = latestTopicVersion ? latestTopicVersion.version + 1 : 1;
+
     const newTopicVersion = await this.topicVersionsRepository.createTopicVersion({
       ...topic,
       topicId: newTopic.id,
-      version,
+      version: 1,
     });
 
     return newTopicVersion;
@@ -86,7 +82,7 @@ export class TopicsService {
     const rootComponent = new TopicComposite(topicVersion);
 
     await this.buildTopicTree(rootComponent);
-
+    // TODO fix this return type
     return rootComponent.toTreeStructure();
   }
 
@@ -123,8 +119,12 @@ export class TopicsService {
     return;
   }
 
-  updateTopic(id: number, topicPayload: Partial<TopicVersion>) {
-    return 'Updated';
+  async updateTopic(id: number, topicPayload: Partial<TopicVersion>): Promise<TopicVersion> {
+    const newVersion = TopicVersionFactory.createNewVersion(topicPayload);
+
+    const createdVersion = await this.topicVersionsRepository.createTopicVersion(newVersion);
+
+    return createdVersion;
   }
 
   deleteTopic(id: number) {

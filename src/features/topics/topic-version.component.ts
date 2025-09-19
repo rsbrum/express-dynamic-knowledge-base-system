@@ -27,7 +27,9 @@ export abstract class TopicComponent {
       parentTopicId: this.topicVersion.parentTopicId,
       createdAt: this.topicVersion.createdAt,
       updatedAt: this.topicVersion.updatedAt,
-      children: this.getChildren().map(child => child.toTreeStructure())
+      version: this.topicVersion.version,
+      topicId: this.topicVersion.topicId,
+      children: this.getChildren().map((child) => child.toTreeStructure()),
     };
 
     return result;

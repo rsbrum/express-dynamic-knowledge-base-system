@@ -11,7 +11,8 @@ export class TopicVersionsRepository extends BaseRepository<TopicVersion> {
   }
 
   async createTopicVersion(topicVersion: Partial<TopicVersion>): Promise<TopicVersion> {
-    return await this.repository.save(topicVersion);
+    const newTopicVersion = this.repository.create(topicVersion);
+    return await this.repository.save(newTopicVersion);
   }
 
   async findLatestVersionByTopicId(topicId: number): Promise<TopicVersion | null> {
