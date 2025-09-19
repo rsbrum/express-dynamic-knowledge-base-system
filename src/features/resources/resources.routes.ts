@@ -2,7 +2,7 @@ import { ResourcesService } from '@/features/resources/resources.service';
 import { ResourcesController } from '@/features/resources/resources.controller';
 import { BaseApplicationRoute } from '@/lib/BaseApplicationRoute';
 import Logger from '@/core/logger';
-import { TopicVersionsRepository } from '@/features/topics/topic-version.repository';
+import { TopicVersionsRepository } from '@/features/topics/topic-versions/topic-version.repository';
 import { ResourcesRepository } from '@/features/resources/resources.repository';
 import { AuthMiddleware } from '@/core/middlewares/auth.middleware';
 import { PermissionsMiddleware } from '@/core/middlewares/permissions.middleware';

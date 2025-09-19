@@ -1,36 +1,25 @@
 import { Topic } from '@/features/topics/topic.entity';
 import { TopicsRepository } from '@/features/topics/topics.repository';
 import Logger from '@/core/logger';
-import { TopicVersion } from '@/features/topics/topic-version.entity';
-import { TopicVersionsRepository } from '@/features/topics/topic-version.repository';
-import { TopicComposite } from '@/features/topics/topic-version.composite';
-import { TopicComponent } from '@/features/topics/topic-version.component';
-import { TopicVersionFactory } from '@/features/topics/topic-version.factory';
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
+
 import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
 import { ResourcesRepository } from '@/features/resources/resources.repository';
+import { TopicVersionService } from '@/features/topics/topic-versions/topic-version.service';
 
-// todo
-// create topicsversion service and move all
-// topicversion related files to a specific folder
 export class TopicsService {
-  private topicsRepository: TopicsRepository;
-  private topicVersionsRepository: TopicVersionsRepository;
-  private resourcesRepository: ResourcesRepository;
-
   private logger = new Logger(TopicsService.name);
 
-  // todo
-  // dependencies should be injected
-  constructor() {
-    this.topicsRepository = new TopicsRepository();
-    this.topicVersionsRepository = new TopicVersionsRepository();
-    this.resourcesRepository = new ResourcesRepository();
-  }
+  constructor(
+    private topicsRepository: TopicsRepository,
+    private topicVersionService: TopicVersionService,
+    private resourcesRepository: ResourcesRepository,
+  ) {}
 
   async createTopic(topic: Partial<TopicVersion>): Promise<TopicVersion> {
     const newTopic = await this.topicsRepository.createTopic();
 
-    const newTopicVersion = await this.topicVersionsRepository.createTopicVersion({
+    const newTopicVersion = await this.topicVersionService.createTopicVersion({
       ...topic,
       topicId: newTopic.id,
       version: 1,
@@ -41,104 +30,31 @@ export class TopicsService {
 
   async getTopics(): Promise<IHierarchicalTopicVersion[]> {
     const topics: Topic[] = await this.topicsRepository.findAllTopics();
-    const topicVersions: TopicVersion[] = [];
+    const hierarchicalTopics: IHierarchicalTopicVersion[] = [];
 
     for (let topic of topics) {
-      const topicVersion = await this.topicVersionsRepository.findLatestVersion(topic.id);
-
-      if (!topicVersion) {
-        this.logger.warn(`No topic version found for topic ${topic.id}`);
-        continue;
-      }
-
-      topicVersions.push(topicVersion);
-    }
-
-    const topicComponents: Map<number, TopicComponent> = new Map();
-    const rootComponents: TopicComponent[] = [];
-
-    for (const topicVersion of topicVersions) {
-      const component = new TopicComposite(topicVersion);
-      topicComponents.set(topicVersion.topicId, component);
-
-      if (topicVersion.parentTopicId === null) {
-        rootComponents.push(component);
+      const hierarchicalTopic = await this.topicVersionService.getLatestTopicVersion(topic.id);
+      if (hierarchicalTopic && hierarchicalTopic.parentTopicId === null) {
+        hierarchicalTopics.push(hierarchicalTopic);
       }
     }
 
-    for (const topicVersion of topicVersions) {
-      if (topicVersion.parentTopicId !== null) {
-        const parentComponent = topicComponents.get(topicVersion.parentTopicId);
-        const childComponent = topicComponents.get(topicVersion.topicId);
-
-        if (parentComponent && childComponent && parentComponent.isComposite()) {
-          (parentComponent as TopicComposite).add(childComponent);
-        }
-      }
-    }
-
-    return rootComponents.map((component) => component.toTreeStructure());
+    return hierarchicalTopics;
   }
 
   async getTopic(id: number): Promise<IHierarchicalTopicVersion | null> {
-    const topicVersion = await this.topicVersionsRepository.findLatestVersion(id);
-    if (!topicVersion) {
-      this.logger.warn(`Topic version for topic ${id} not found`);
-      return null;
-    }
-
-    const rootComponent = new TopicComposite(topicVersion);
-
-    await this.buildTopicTree(rootComponent);
-    return rootComponent.toTreeStructure();
+    return await this.topicVersionService.getLatestTopicVersion(id);
   }
 
   async getTopicByVersion(
     topicId: number,
     version: number,
   ): Promise<IHierarchicalTopicVersion | null> {
-    const topicVersion = await this.topicVersionsRepository.findByVersion(topicId, version);
-    if (!topicVersion) {
-      this.logger.warn(`Topic version for topic ${topicId} and version ${version} not found`);
-      return null;
-    }
-
-    const rootComponent = new TopicComposite(topicVersion);
-
-    await this.buildTopicTree(rootComponent);
-
-    return rootComponent.toTreeStructure();
-  }
-
-  private async buildTopicTree(
-    parentComponent: TopicComposite,
-  ): Promise<TopicComponent | undefined> {
-    const childVersions = await this.topicVersionsRepository.findByParentId(
-      parentComponent.getTopicVersion().topicId,
-    );
-    if (!childVersions) {
-      return;
-    }
-
-    for (const childVersion of childVersions) {
-      const childComponent = new TopicComposite(childVersion);
-      parentComponent.add(childComponent);
-      await this.buildTopicTree(childComponent);
-    }
-
-    return;
+    return await this.topicVersionService.getTopicByVersion(topicId, version);
   }
 
   async updateTopic(id: number, topic: Partial<TopicVersion>): Promise<TopicVersion> {
-    const currentVersion = await this.topicVersionsRepository.findLatestVersion(id);
-    if (!currentVersion) {
-      throw new Error(`Topic with id ${id} not found`);
-    }
-
-    const newVersion = await TopicVersionFactory.create(currentVersion, topic);
-    const createdVersion = await this.topicVersionsRepository.createTopicVersion(newVersion);
-
-    return createdVersion;
+    return await this.topicVersionService.updateTopicVersion(id, topic);
   }
 
   async deleteTopic(id: number): Promise<boolean> {
@@ -161,7 +77,7 @@ export class TopicsService {
     traverseTree(tree);
 
     for (const topicId of topicsToDelete) {
-      const topicVersions = await this.topicVersionsRepository.findByTopicId(topicId);
+      const topicVersions = await this.topicVersionService.getTopicVersionsByTopicId(topicId);
       for (const version of topicVersions) {
         const resources = await this.resourcesRepository.findByTopicVersionId(version.id);
         for (const resource of resources) {
@@ -171,9 +87,9 @@ export class TopicsService {
     }
 
     for (const topicId of topicsToDelete) {
-      const topicVersions = await this.topicVersionsRepository.findByTopicId(topicId);
+      const topicVersions = await this.topicVersionService.getTopicVersionsByTopicId(topicId);
       for (const version of topicVersions) {
-        await this.topicVersionsRepository.delete(version.id);
+        await this.topicVersionService.deleteTopicVersion(version.id);
       }
     }
 

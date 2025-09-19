@@ -1,5 +1,5 @@
-import { TopicComponent } from "@/features/topics/topic-version.component";
-import { TopicVersion } from "@/features/topics/topic-version.entity";
+import { TopicComponent } from "@/features/topics/topic-versions/topic-version.component";
+import { TopicVersion } from "@/features/topics/topic-versions/topic-version.entity";
 
 export class TopicComposite extends TopicComponent {
   private children: TopicComponent[] = [];

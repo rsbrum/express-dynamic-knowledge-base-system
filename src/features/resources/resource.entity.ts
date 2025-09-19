@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { TopicVersion } from '@/features/topics/topic-version.entity';
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
 
 @Entity()
 export class Resource {

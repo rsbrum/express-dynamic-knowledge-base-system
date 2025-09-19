@@ -1,7 +1,7 @@
 import { ResourcesRepository } from '@/features/resources/resources.repository';
 import Logger from '@/core/logger';
 import { Resource } from '@/features/resources/resource.entity';
-import { TopicVersionsRepository } from '@/features/topics/topic-version.repository';
+import { TopicVersionsRepository } from '@/features/topics/topic-versions/topic-version.repository';
 
 export class ResourcesService {
   private logger = new Logger(ResourcesService.name);

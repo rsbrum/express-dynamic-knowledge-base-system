@@ -1,4 +1,4 @@
-import { TopicVersion } from '@/features/topics/topic-version.entity';
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
 
 
 export class TopicVersionFactory {

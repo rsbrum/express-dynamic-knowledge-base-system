@@ -1,5 +1,5 @@
 import { BaseRepository } from '@/lib/BaseRepository';
-import { TopicVersion } from './topic-version.entity';
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
 import Logger from '@/core/logger';
 
 export class TopicVersionsRepository extends BaseRepository<TopicVersion> {

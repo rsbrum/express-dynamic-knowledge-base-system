@@ -1,4 +1,4 @@
-import { TopicVersion } from "@/features/topics/topic-version.entity";
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
 import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
 
 export abstract class TopicComponent {
