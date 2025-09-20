@@ -52,6 +52,11 @@ export class TopicsRoutes extends BaseApplicationRoute {
       PermissionsMiddleware.requirePermission(EUserPermissions.CAN_VIEW),
       (req, res) => this.topicsController.getTopicByVersion(req, res),
     );
+    this.router.get(
+      '/shortest-path/:fromId/:toId',
+      PermissionsMiddleware.requirePermission(EUserPermissions.CAN_VIEW),
+      (req, res) => this.topicsController.getShortestPath(req, res),
+    );
     this.router.put(
       '/:id',
       PermissionsMiddleware.requirePermission(EUserPermissions.CAN_EDIT),

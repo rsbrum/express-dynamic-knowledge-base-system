@@ -183,4 +183,41 @@ export class TopicsController {
       ).send(res, 500);
     }
   }
+
+  async getShortestPath(req: Request, res: Response) {
+    try {
+      const fromId = req.params['fromId'];
+      const toId = req.params['toId'];
+
+      if (!fromId || !toId) {
+        ErrorResponse.badRequest('Invalid request', 'From ID and to ID are required').send(
+          res,
+          400,
+        );
+        return;
+      }
+
+      const shortestPath = await this.topicsService.findShortestPath(+fromId, +toId);
+
+      if (!shortestPath) {
+        ErrorResponse.notFound('Shortest path not found').send(res, 404);
+        return;
+      }
+
+      this.logger.log(`Shortest path fetched: ${shortestPath.length}`);
+
+      const message = `Shortest path is ${shortestPath.join(' -> ')}`;
+
+      DataResponse.success(message, 'Shortest path fetched successfully').send(res);
+    } catch (error) {
+      this.logger.error(
+        'Failed to get shortest path',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+      ErrorResponse.internal(
+        'Failed to get shortest path',
+        error instanceof Error ? error.message : 'Unknown error',
+      ).send(res, 500);
+    }
+  }
 }

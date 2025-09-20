@@ -99,4 +99,58 @@ export class TopicsService {
 
     return true;
   }
+
+  async findShortestPath(fromId: number, toId: number): Promise<number[] | null> {
+    const queue: { topicId: number; path: number[] }[] = [{ topicId: fromId, path: [fromId] }];
+    const visited = new Set<number>();
+
+    // bfs
+    while (queue.length > 0) {
+      const { topicId, path } = queue.shift()!;
+
+      if (topicId === toId) {
+        return path;
+      }
+
+      if (!visited.has(topicId)) {
+        visited.add(topicId);
+
+        const topicComponent = await this.topicVersionService.getLatestTopicVersion(topicId);
+        if (topicComponent) {
+          // downward
+          if (topicComponent.children) {
+            for (const child of topicComponent.children) {
+              if (!visited.has(child.id)) {
+                queue.push({ topicId: child.id, path: [...path, child.id] });
+              }
+            }
+          }
+
+          // upward
+          if (topicComponent.parentTopicId !== null) {
+            const parentId = topicComponent.parentTopicId;
+            if (!visited.has(parentId)) {
+              queue.push({ topicId: parentId, path: [...path, parentId] });
+            }
+          }
+
+          // sibling
+          if (topicComponent.parentTopicId !== null) {
+            const parentComponent = await this.topicVersionService.getLatestTopicVersion(
+              topicComponent.parentTopicId,
+            );
+            if (parentComponent && parentComponent.children) {
+              for (const sibling of parentComponent.children) {
+                if (sibling.id !== topicId && !visited.has(sibling.id)) {
+                  queue.push({ topicId: sibling.id, path: [...path, sibling.id] });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
 }
