@@ -88,6 +88,10 @@ export class ResourcesController {
       this.logger.log(`Resource deleted: ${id}`);
       DataResponse.success(resource, 'Resource deleted successfully').send(res);
     } catch (error) {
+      this.logger.error(
+        'Failed to delete resource',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       ErrorResponse.internal(
         'Failed to delete resource',
         error instanceof Error ? error.message : 'Unknown error',
@@ -101,6 +105,10 @@ export class ResourcesController {
       this.logger.log(`Resources fetched: ${resources.length}`);
       DataResponse.success(resources, 'Resources fetched successfully').send(res);
     } catch (error) {
+      this.logger.error(
+        'Failed to get resources',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       ErrorResponse.internal(
         'Failed to get resources',
         error instanceof Error ? error.message : 'Unknown error',

@@ -1,7 +1,9 @@
-import { TopicVersion } from "@/features/topics/topic-versions/topic-version.entity";
-import { Topic } from "@/features/topics/topic.entity";
-import { IHierarchicalTopicVersion } from "@/lib/IHierarchicalTopicVersion";
-
+import { TopicVersion } from '@/features/topics/topic-versions/topic-version.entity';
+import { Topic } from '@/features/topics/topic.entity';
+import { IHierarchicalTopicVersion } from '@/lib/IHierarchicalTopicVersion';
+import { EUserRole } from '@/lib/EUserRole';
+import { User } from '@/features/users/user.entity';
+import { Resource } from '@/features/resources/resource.entity';
 
 export const mockTopic: Topic = {
   id: 1,
@@ -22,7 +24,6 @@ export const mockTopicVersion: TopicVersion = {
   resources: [],
 };
 
-
 export const mockHierarchicalTopics: Record<number, IHierarchicalTopicVersion> = {
   1: {
     id: 1,
@@ -30,7 +31,7 @@ export const mockHierarchicalTopics: Record<number, IHierarchicalTopicVersion> =
     content: '',
     createdAt: new Date(),
     updatedAt: new Date(),
-    version: 0,
+    version: 1,
     parentTopicId: null,
     topicId: 1,
     resources: [],
@@ -143,4 +144,40 @@ export const mockHierarchicalTopics: Record<number, IHierarchicalTopicVersion> =
     resources: [],
     children: [],
   },
+};
+
+export const topicPayload: Partial<TopicVersion> = {
+  name: 'Test Topic',
+  content: 'Test Content',
+  parentTopicId: null,
+};
+
+export const topicUpdatePayload: Partial<TopicVersion> = {
+  name: 'Updated Topic',
+  content: 'Updated Content',
+  parentTopicId: null,
+  id: 1,
+  version: 2,
+  topicId: 1,
+};
+
+export const mockUser: User = {
+  id: 1,
+  name: 'Test User',
+  role: EUserRole.ADMIN,
+  email: 'test@example.com',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+export const mockResource: Resource = {
+  id: 1,
+  url: 'http://test.com',
+  description: 'Test Description',
+  type: 'link',
+  topicVersionId: 1,
+  topicId: 1,
+  topicVersion: mockTopicVersion,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
