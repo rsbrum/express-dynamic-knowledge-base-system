@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Knowledge Base System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 30px;
+            border-left: 5px solid #4f46e5;
+        }
+
+        .section h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .results {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .results pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc2626;
+            margin-top: 15px;
+        }
+
+        .success {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #16a34a;
+            margin-top: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #22c55e;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .config {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config input {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        /* Tree Structure Styles */
+        .topic-tree {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .topic-node {
+            margin: 0;
+            list-style: none;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .topic-item:last-child {
+            border-bottom: none;
+        }
+
+        .topic-indent {
+            width: 20px;
+            display: inline-block;
+        }
+
+        .topic-toggle {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .topic-toggle:hover {
+            background-color: #f0f0f0;
+        }
+
+        .topic-toggle.empty {
+            cursor: default;
+        }
+
+        .topic-content {
+            flex: 1;
+            padding-left: 8px;
+        }
+
+        .topic-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .topic-name:hover {
+            background-color: #f8fafc;
+        }
+
+        .topic-description {
+            color: #64748b;
+            font-size: 0.9em;
+            margin-bottom: 2px;
+        }
+
+        .topic-meta {
+            color: #94a3b8;
+            font-size: 0.8em;
+            display: flex;
+            gap: 15px;
+        }
+
+        .topic-children {
+            margin-left: 20px;
+            border-left: 1px solid #e2e8f0;
+            padding-left: 15px;
+            margin-top: 8px;
+        }
+
+        .topic-children.collapsed {
+            display: none;
+        }
+
+        .topic-icon {
+            margin-right: 6px;
+            font-size: 14px;
+        }
+
+        .topic-resources {
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .topic-resources .resource-item {
+            transition: all 0.2s ease;
+        }
+
+        .topic-resources .resource-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .role-btn {
+            background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .role-btn:hover {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        .role-btn.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dynamic Knowledge Base System</h1>
+            <div style="margin-top: 15px;">
+                <span class="status-indicator" id="status-indicator"></span>
+                <span id="status-text">Checking connection...</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="config">
+                <label>
+                    <strong>API Base URL:</strong>
+                    <input type="text" id="apiUrl" value="http://localhost:3000" style="margin-left: 10px; padding: 8px; width: 250px;">
+                </label>
+                <button class="btn" onclick="checkConnection()" style="margin-left: 10px; padding: 8px 16px;">Test Connection</button>
+            </div>
+
+            <div class="config">
+                <label style="margin-bottom: 10px; display: block;">
+                    <strong>User Role (for API Authentication):</strong>
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn role-btn active" id="adminBtn" onclick="setUserRole('Admin')" style="padding: 8px 16px;">
+                        👑 Admin
+                    </button>
+                    <button class="btn role-btn" id="editorBtn" onclick="setUserRole('Editor')" style="padding: 8px 16px;">
+                        ✏️ Editor
+                    </button>
+                    <button class="btn role-btn" id="viewerBtn" onclick="setUserRole('Viewer')" style="padding: 8px 16px;">
+                        👁️ Viewer
+                    </button>
+                    <span id="currentRole" style="margin-left: 15px; font-weight: 600; color: #4f46e5;">Current: Admin</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <!-- Users Section -->
+                <div class="section">
+                    <h2>👥 Users Management</h2>
+
+                    <div class="grid">
+                        <div>
+                            <h3 style="margin-bottom: 15px;">Fetch Users</h3>
+                            <button class="btn" onclick="fetchUsers()">Get All Users</button>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 15px;">Create New User</h3>
+                            <form onsubmit="createUser(event)">
+                                <div class="form-group">
+                                    <label for="userName">Name:</label>
+                                    <input type="text" id="userName" required placeholder="Enter user name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="userEmail">Email:</label>
+                                    <input type="email" id="userEmail" required placeholder="Enter user email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="userRole">Role:</label>
+                                    <select id="userRole" required>
+                                        <option value="">Select user role</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Editor">Editor</option>
+                                        <option value="Viewer">Viewer</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn">Create User</button>
+                            </form>
+
+                            <h3 style="margin-bottom: 15px; margin-top: 25px;">Update User</h3>
+                            <form onsubmit="updateUser(event)">
+                                <div class="form-group">
+                                    <label for="updateUserId">User ID to Update:</label>
+                                    <input type="number" id="updateUserId" required placeholder="Enter user ID to update" min="1">
+                                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                                        💡 Tip: Use "Get All Users" to find user IDs
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateUserName">New Name:</label>
+                                    <input type="text" id="updateUserName" required placeholder="Enter new user name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateUserEmail">New Email:</label>
+                                    <input type="email" id="updateUserEmail" required placeholder="Enter new user email">
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateUserRole">New Role:</label>
+                                    <select id="updateUserRole" required>
+                                        <option value="">Select user role</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Editor">Editor</option>
+                                        <option value="Viewer">Viewer</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn">Update User</button>
+                            </form>
+
+                            <h3 style="margin-bottom: 15px; margin-top: 25px;">Delete User</h3>
+                            <form onsubmit="deleteUser(event)">
+                                <div class="form-group">
+                                    <label for="deleteUserId">User ID to Delete:</label>
+                                    <input type="number" id="deleteUserId" required placeholder="Enter user ID to delete" min="1">
+                                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                                        💡 Tip: Use "Get All Users" to find user IDs
+                                    </small>
+                                </div>
+                                <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">Delete User</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="results" id="users-results" style="display: none;">
+                        <h3>Users Results:</h3>
+                        <pre id="users-data"></pre>
+                    </div>
+                </div>
+
+                <!-- Resources Section -->
+                <div class="section">
+                    <h2>📚 Resources Management</h2>
+
+                    <div class="grid">
+                        <div>
+                            <h3 style="margin-bottom: 15px;">Fetch Resources</h3>
+                            <button class="btn" onclick="fetchResources()">Get All Resources</button>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 15px;">Create New Resource</h3>
+                            <form onsubmit="createResource(event)">
+                                <div class="form-group">
+                                    <label for="resourceUrl">URL:</label>
+                                    <input type="url" id="resourceUrl" required placeholder="Enter resource URL (e.g., https://example.com)">
+                                </div>
+                                <div class="form-group">
+                                    <label for="resourceDescription">Description:</label>
+                                    <textarea id="resourceDescription" required placeholder="Enter resource description" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resourceType">Type:</label>
+                                    <select id="resourceType" required>
+                                        <option value="">Select resource type</option>
+                                        <option value="article">Article</option>
+                                        <option value="video">Video</option>
+                                        <option value="book">Book</option>
+                                        <option value="course">Course</option>
+                                        <option value="documentation">Documentation</option>
+                                        <option value="tutorial">Tutorial</option>
+                                        <option value="reference">Reference</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resourceTopicId">Topic ID:</label>
+                                    <input type="number" id="resourceTopicId" required placeholder="Enter topic ID" min="1">
+                                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                                        💡 Tip: Use "Get All Topics" to find available topic IDs (resource will be attached to the latest version)
+                                    </small>
+                                </div>
+                                <button type="submit" class="btn">Create Resource</button>
+                            </form>
+
+                            <h3 style="margin-bottom: 15px; margin-top: 25px;">Update Resource</h3>
+                            <form onsubmit="updateResource(event)">
+                                <div class="form-group">
+                                    <label for="updateResourceId">Resource ID to Update:</label>
+                                    <input type="number" id="updateResourceId" required placeholder="Enter resource ID to update" min="1">
+                                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                                        💡 Tip: Use "Get All Resources" to find resource IDs
+                                    </small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateResourceUrl">New URL:</label>
+                                    <input type="url" id="updateResourceUrl" required placeholder="Enter new resource URL">
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateResourceDescription">New Description:</label>
+                                    <textarea id="updateResourceDescription" required placeholder="Enter new resource description" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateResourceType">New Type:</label>
+                                    <select id="updateResourceType" required>
+                                        <option value="">Select resource type</option>
+                                        <option value="article">Article</option>
+                                        <option value="video">Video</option>
+                                        <option value="book">Book</option>
+                                        <option value="course">Course</option>
+                                        <option value="documentation">Documentation</option>
+                                        <option value="tutorial">Tutorial</option>
+                                        <option value="reference">Reference</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="updateResourceTopicId">New Topic ID:</label>
+                                    <input type="number" id="updateResourceTopicId" required placeholder="Enter new topic ID" min="1">
+                                </div>
+                                <button type="submit" class="btn">Update Resource</button>
+                            </form>
+
+                            <h3 style="margin-bottom: 15px; margin-top: 25px;">Delete Resource</h3>
+                            <form onsubmit="deleteResource(event)">
+                                <div class="form-group">
+                                    <label for="deleteResourceId">Resource ID to Delete:</label>
+                                    <input type="number" id="deleteResourceId" required placeholder="Enter resource ID to delete" min="1">
+                                    <small style="color: #64748b; display: block; margin-top: 5px;">
+                                        💡 Tip: Use "Get All Resources" to find resource IDs
+                                    </small>
+                                </div>
+                                <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">Delete Resource</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="results" id="resources-results" style="display: none;">
+                        <h3>Resources Results:</h3>
+                        <div id="resources-display"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topics Section -->
+            <div class="section">
+                <h2>📝 Topics Management</h2>
+
+                <div class="grid">
+                    <div>
+                        <h3 style="margin-bottom: 15px;">Fetch Topics</h3>
+                        <button class="btn" onclick="fetchTopics()">Get All Topics</button>
+
+                        <h3 style="margin-bottom: 15px; margin-top: 25px;">Get Individual Topic</h3>
+                        <form onsubmit="getTopic(event)">
+                            <div class="form-group">
+                                <label for="getTopicId">Topic ID:</label>
+                                <input type="number" id="getTopicId" required placeholder="Enter topic ID" min="1">
+                            </div>
+                            <button type="submit" class="btn">Get Topic</button>
+                        </form>
+
+                        <h3 style="margin-bottom: 15px; margin-top: 25px;">Get Topic by Version</h3>
+                        <form onsubmit="getTopicByVersion(event)">
+                            <div class="form-group">
+                                <label for="getVersionTopicId">Topic ID:</label>
+                                <input type="number" id="getVersionTopicId" required placeholder="Enter topic ID" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="getTopicVersion">Version:</label>
+                                <input type="number" id="getTopicVersion" required placeholder="Enter version number" min="1">
+                            </div>
+                            <button type="submit" class="btn">Get Topic Version</button>
+                        </form>
+
+                        <h3 style="margin-bottom: 15px; margin-top: 25px;">Find Shortest Path</h3>
+                        <form onsubmit="getShortestPath(event)">
+                            <div class="form-group">
+                                <label for="fromTopicId">From Topic ID:</label>
+                                <input type="number" id="fromTopicId" required placeholder="Enter starting topic ID" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="toTopicId">To Topic ID:</label>
+                                <input type="number" id="toTopicId" required placeholder="Enter destination topic ID" min="1">
+                            </div>
+                            <small style="color: #64748b; display: block; margin-bottom: 15px;">
+                                🔍 Find the shortest path between two topics in the hierarchy
+                            </small>
+                            <button type="submit" class="btn">Find Shortest Path</button>
+                        </form>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 15px;">Create New Topic</h3>
+                        <form onsubmit="createTopic(event)">
+                            <div class="form-group">
+                                <label for="topicName">Topic Name:</label>
+                                <input type="text" id="topicName" required placeholder="Enter topic name">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="topicContent">Content:</label>
+                                <textarea id="topicContent" required placeholder="Enter topic content"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="parentTopicId">Parent Topic ID (optional):</label>
+                                <input type="number" id="parentTopicId" placeholder="Leave empty if no parent" min="1">
+                            </div>
+
+                            <button type="submit" class="btn">Create Topic</button>
+                        </form>
+
+                        <h3 style="margin-bottom: 15px; margin-top: 25px;">Update Topic Version</h3>
+                        <form onsubmit="updateTopic(event)">
+                            <div class="form-group">
+                                <label for="updateTopicVersionId">Topic Version ID to Update:</label>
+                                <input type="number" id="updateTopicVersionId" required placeholder="Enter topic version ID to update" min="1">
+                                <small style="color: #64748b; font-size: 0.9em;">This identifies which topic version to update</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="updateTopicName">New Topic Name:</label>
+                                <input type="text" id="updateTopicName" required placeholder="Enter new topic name">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="updateTopicContent">New Content:</label>
+                                <textarea id="updateTopicContent" required placeholder="Enter new topic content"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="updateParentTopicId">New Parent Topic ID (optional):</label>
+                                <input type="number" id="updateParentTopicId" placeholder="Leave empty if no parent" min="1">
+                                <small style="color: #64748b; font-size: 0.9em;">Change parent relationship or leave empty</small>
+                            </div>
+
+                            <button type="submit" class="btn">Update Topic Version</button>
+                        </form>
+
+                        <h3 style="margin-bottom: 15px; margin-top: 25px;">Delete Topic</h3>
+                        <form onsubmit="deleteTopic(event)">
+                            <div class="form-group">
+                                <label for="deleteTopicId">Topic ID:</label>
+                                <input type="number" id="deleteTopicId" required placeholder="Enter topic ID to delete" min="1">
+                            </div>
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);">Delete Topic</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="results" id="topics-results" style="display: none;">
+                    <h3>Topics Results:</h3>
+                    <pre id="topics-data"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_ENDPOINTS = {
+            users: '/users',
+            topics: '/topics',
+            resources: '/resources'
+        };
+
+        let currentUserRole = 'Admin'; // Default role
+
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim();
+        }
+
+        function setUserRole(role) {
+            currentUserRole = role;
+
+            // Update UI to show current role
+            document.getElementById('currentRole').textContent = `Current: ${role}`;
+
+            // Update button states
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${role.toLowerCase()}Btn`).classList.add('active');
+
+            // Show success message
+            showSuccess(`User role switched to: ${role}`);
+        }
+
+        function showLoading(buttonElement) {
+            const originalText = buttonElement.textContent;
+            buttonElement.innerHTML = originalText + '<span class="loading"></span>';
+            buttonElement.disabled = true;
+            return originalText;
+        }
+
+        function hideLoading(buttonElement, originalText) {
+            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+        }
+
+        function showResults(sectionId, data) {
+            const resultsDiv = document.getElementById(sectionId + '-results');
+            const dataElement = document.getElementById(sectionId + '-data');
+
+            resultsDiv.style.display = 'block';
+            dataElement.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function showError(message, sectionId = null) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `❌ Error: ${message}`;
+
+            if (sectionId) {
+                const resultsDiv = document.getElementById(sectionId + '-results');
+                if (resultsDiv) {
+                    resultsDiv.style.display = 'block';
+                    resultsDiv.innerHTML = '<h3>Error:</h3>' + errorDiv.outerHTML;
+                }
+            } else {
+                document.querySelector('.content').prepend(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = `✅ ${message}`;
+            document.querySelector('.content').prepend(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        async function makeApiRequest(endpoint, options = {}) {
+            const url = getApiUrl() + endpoint;
+
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-role': currentUserRole
+                },
+            };
+
+            const response = await fetch(url, { ...defaultOptions, ...options });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        function toggleTopicNode(button) {
+            const childrenContainer = button.parentElement.parentElement.querySelector('.topic-children');
+            if (!childrenContainer) return;
+
+            const isCollapsed = childrenContainer.classList.contains('collapsed');
+
+            if (isCollapsed) {
+                childrenContainer.classList.remove('collapsed');
+                button.innerHTML = '▼';
+                button.title = 'Collapse';
+            } else {
+                childrenContainer.classList.add('collapsed');
+                button.innerHTML = '▶';
+                button.title = 'Expand';
+            }
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function renderTopicNode(topic, level = 0) {
+            const hasChildren = topic.children && topic.children.length > 0;
+            const hasResources = topic.resources && topic.resources.length > 0;
+
+            const toggleButton = (hasChildren || hasResources)
+                ? `<button class="topic-toggle" onclick="toggleTopicNode(this)" title="Collapse">▼</button>`
+                : `<span class="topic-toggle empty">•</span>`;
+
+            const icon = hasChildren ? '📁' : '📄';
+
+            let html = `
+                <div class="topic-item">
+                    ${toggleButton}
+                    <div class="topic-content">
+                        <div class="topic-name">
+                            <span class="topic-icon">${icon}</span>
+                            ${topic.name}
+                            ${hasResources ? `<span style="background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;">${topic.resources.length} resource${topic.resources.length !== 1 ? 's' : ''}</span>` : ''}
+                        </div>
+                        <div class="topic-description">${topic.content}</div>
+                        <div class="topic-meta">
+                            <span><strong>ID:</strong> ${topic.id}</span>
+                            <span><strong>Version:</strong> ${topic.version}</span>
+                            <span><strong>Created:</strong> ${formatDate(topic.createdAt)}</span>
+                            <span><strong>Updated:</strong> ${formatDate(topic.updatedAt)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (hasChildren || hasResources) {
+                html += `<div class="topic-children">`;
+
+                // Display resources first
+                if (hasResources) {
+                    html += `<div class="topic-resources" style="margin-bottom: 15px;">`;
+                    html += `<div style="color: #64748b; font-size: 0.9em; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center;"><span style="margin-right: 6px;">📚</span>Resources:</div>`;
+
+                    for (const resource of topic.resources) {
+                        const typeIcon = getResourceTypeIcon(resource.type);
+                        html += `
+                            <div class="resource-item" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <span style="font-size: 16px;">${typeIcon}</span>
+                                    <a href="${resource.url}" target="_blank" rel="noopener noreferrer"
+                                       style="color: #4f46e5; text-decoration: none; font-weight: 500; font-size: 0.9em;">
+                                        ${resource.url}
+                                    </a>
+                                    <span style="background: #e0e7ff; color: #3730a3; padding: 1px 6px; border-radius: 8px; font-size: 0.7em; font-weight: 500;">
+                                        ${resource.type}
+                                    </span>
+                                </div>
+                                <div style="color: #64748b; font-size: 0.85em; margin-bottom: 4px;">${resource.description}</div>
+                                <div style="color: #94a3b8; font-size: 0.75em;">
+                                    ID: ${resource.id} • Topic ID: ${resource.topicId} • Created: ${formatDate(resource.createdAt)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                }
+
+                // Then display children
+                if (hasChildren) {
+                    for (const child of topic.children) {
+                        html += renderTopicNode(child, level + 1);
+                    }
+                }
+
+                html += `</div>`;
+            }
+
+            return `<div class="topic-node">${html}</div>`;
+        }
+
+        function renderTopicsTree(topics) {
+            if (!topics || topics.length === 0) {
+                return '<div class="topic-tree"><p style="color: #64748b; font-style: italic;">No topics found.</p></div>';
+            }
+
+            let html = '<div class="topic-tree">';
+
+            for (const topic of topics) {
+                html += renderTopicNode(topic);
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function showResourcesResults(data) {
+            const resultsDiv = document.getElementById('resources-results');
+            resultsDiv.style.display = 'block';
+
+            let resources = data;
+            if (data.message && data.data) {
+                // Handle DataResponse format
+                if (Array.isArray(data.data)) {
+                    // Multiple resources (from getResources)
+                    resources = data.data;
+                } else {
+                    // Single resource (from createResource)
+                    resources = [data.data];
+                }
+            } else if (Array.isArray(data)) {
+                // Direct array
+                resources = data;
+            } else if (data && typeof data === 'object') {
+                // Single resource object
+                resources = [data];
+            }
+
+            const resourcesHtml = renderResourcesList(resources);
+            const displayDiv = document.getElementById('resources-display');
+            displayDiv.innerHTML = resourcesHtml;
+        }
+
+        function renderResourcesList(resources) {
+            if (!resources || resources.length === 0) {
+                return '<div style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;"><p style="color: #64748b; font-style: italic;">No resources found.</p></div>';
+            }
+
+            let html = '<div style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">';
+
+            for (const resource of resources) {
+                const typeIcon = getResourceTypeIcon(resource.type);
+                html += `
+                    <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <div style="font-size: 24px;">${typeIcon}</div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; color: #1e293b;">
+                                        <a href="${resource.url}" target="_blank" rel="noopener noreferrer"
+                                           style="color: #4f46e5; text-decoration: none;">
+                                            ${resource.url}
+                                        </a>
+                                    </h4>
+                                    <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
+                                        ${resource.type}
+                                    </span>
+                                </div>
+                                <p style="color: #64748b; margin: 8px 0; line-height: 1.5;">${resource.description}</p>
+                                <div style="display: flex; gap: 20px; color: #94a3b8; font-size: 0.85em; margin-top: 8px;">
+                                    <span><strong>ID:</strong> ${resource.id}</span>
+                                    <span><strong>Topic ID:</strong> ${resource.topicId}</span>
+                                    <span><strong>Topic Version ID:</strong> ${resource.topicVersionId}</span>
+                                    <span><strong>Created:</strong> ${formatDate(resource.createdAt)}</span>
+                                    <span><strong>Updated:</strong> ${formatDate(resource.updatedAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function getResourceTypeIcon(type) {
+            const icons = {
+                'article': '📄',
+                'video': '🎥',
+                'book': '📚',
+                'course': '🎓',
+                'documentation': '📋',
+                'tutorial': '📝',
+                'reference': '📖',
+                'other': '📎'
+            };
+            return icons[type] || '📎';
+        }
+
+        function showTopicsResults(data) {
+            const resultsDiv = document.getElementById('topics-results');
+            resultsDiv.style.display = 'block';
+
+            let topics = data;
+            if (data.message && data.data) {
+                // Handle DataResponse format
+                if (Array.isArray(data.data)) {
+                    // Multiple topics (from getTopics)
+                    topics = data.data;
+                } else {
+                    // Single topic (from createTopic, updateTopic, etc.)
+                    topics = [data.data];
+                }
+            } else if (Array.isArray(data)) {
+                // Direct array
+                topics = data;
+            } else if (data && typeof data === 'object') {
+                // Single topic object
+                topics = [data];
+            }
+
+            const treeHtml = renderTopicsTree(topics);
+            resultsDiv.innerHTML = `
+                <h3>Topics Tree Structure:</h3>
+                <div style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+                    ${treeHtml}
+                </div>
+            `;
+        }
+
+        function showShortestPathResults(data) {
+            const resultsDiv = document.getElementById('topics-results');
+            resultsDiv.style.display = 'block';
+
+            let pathMessage = '';
+            if (data.message && data.data) {
+                // Handle DataResponse format - the data contains the path message
+                pathMessage = data.data;
+            } else if (typeof data === 'string') {
+                // Direct string response
+                pathMessage = data;
+            } else {
+                pathMessage = 'Path information not available';
+            }
+
+            resultsDiv.innerHTML = `
+                <h3>Shortest Path Result:</h3>
+                <div style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span style="font-size: 24px;">🔍</span>
+                        <h4 style="margin: 0; color: #1e293b;">Path Found</h4>
+                    </div>
+                    <div style="background: #f8fafc; border-left: 4px solid #4f46e5; padding: 15px; border-radius: 6px;">
+                        <p style="margin: 0; font-size: 1.1em; color: #374151; font-weight: 500;">
+                            ${pathMessage}
+                        </p>
+                    </div>
+                    <div style="margin-top: 15px; color: #64748b; font-size: 0.9em;">
+                        💡 This shows the shortest connection path between the two topics in the hierarchy.
+                    </div>
+                </div>
+            `;
+        }
+
+        async function checkConnection() {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+
+            try {
+                statusText.textContent = 'Checking connection...';
+                statusIndicator.classList.remove('connected');
+
+                const response = await makeApiRequest('/');
+
+                statusIndicator.classList.add('connected');
+                statusText.textContent = 'Connected - Server is running';
+                showSuccess('Successfully connected to the API server!');
+            } catch (error) {
+                statusIndicator.classList.remove('connected');
+                statusText.textContent = 'Connection failed';
+                showError(`Cannot connect to server: ${error.message}`);
+            }
+        }
+
+        async function fetchUsers() {
+            const button = event.target;
+            const originalText = showLoading(button);
+
+            try {
+                const data = await makeApiRequest(API_ENDPOINTS.users);
+                showResults('users', data);
+                showSuccess('Users fetched successfully!');
+            } catch (error) {
+                showError(error.message, 'users');
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function createUser(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const name = document.getElementById('userName').value.trim();
+                const email = document.getElementById('userEmail').value.trim();
+                const role = document.getElementById('userRole').value.trim();
+
+                const payload = {
+                    name,
+                    email,
+                    role
+                };
+
+                const data = await makeApiRequest(API_ENDPOINTS.users, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                showResults('users', data);
+                showSuccess('User created successfully!');
+
+                // Clear form
+                document.getElementById('userName').value = '';
+                document.getElementById('userEmail').value = '';
+                document.getElementById('userRole').value = '';
+
+            } catch (error) {
+                showError(error.message, 'users');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function updateUser(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const userId = document.getElementById('updateUserId').value.trim();
+                const name = document.getElementById('updateUserName').value.trim();
+                const email = document.getElementById('updateUserEmail').value.trim();
+                const role = document.getElementById('updateUserRole').value.trim();
+
+                if (!userId) {
+                    showError('User ID is required', 'users');
+                    return;
+                }
+
+                const payload = {
+                    name,
+                    email,
+                    role
+                };
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.users}/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                showResults('users', data);
+                showSuccess('User updated successfully!');
+
+                // Clear form
+                document.getElementById('updateUserId').value = '';
+                document.getElementById('updateUserName').value = '';
+                document.getElementById('updateUserEmail').value = '';
+                document.getElementById('updateUserRole').value = '';
+
+            } catch (error) {
+                showError(error.message, 'users');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function deleteUser(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const userId = document.getElementById('deleteUserId').value.trim();
+
+                if (!userId) {
+                    showError('User ID is required', 'users');
+                    return;
+                }
+
+                // Confirm deletion
+                if (!confirm(`Are you sure you want to delete user with ID ${userId}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.users}/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                showResults('users', data);
+                showSuccess('User deleted successfully!');
+
+                // Clear form
+                document.getElementById('deleteUserId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'users');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function fetchTopics() {
+            const button = event.target;
+            const originalText = showLoading(button);
+
+            try {
+                const data = await makeApiRequest(API_ENDPOINTS.topics);
+                showTopicsResults(data);
+                showSuccess('Topics fetched successfully!');
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function fetchResources() {
+            const button = event.target;
+            const originalText = showLoading(button);
+
+            try {
+                const data = await makeApiRequest(API_ENDPOINTS.resources);
+                showResourcesResults(data);
+                showSuccess('Resources fetched successfully!');
+            } catch (error) {
+                showError(error.message, 'resources');
+            } finally {
+                hideLoading(button, originalText);
+            }
+        }
+
+        async function createResource(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const url = document.getElementById('resourceUrl').value.trim();
+                const description = document.getElementById('resourceDescription').value.trim();
+                const type = document.getElementById('resourceType').value.trim();
+                const topicId = parseInt(document.getElementById('resourceTopicId').value.trim());
+
+                const payload = {
+                    url,
+                    description,
+                    type,
+                    topicId
+                };
+
+                const data = await makeApiRequest(API_ENDPOINTS.resources, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                showResourcesResults(data);
+                showSuccess('Resource created successfully!');
+
+                // Clear form
+                document.getElementById('resourceUrl').value = '';
+                document.getElementById('resourceDescription').value = '';
+                document.getElementById('resourceType').value = '';
+                document.getElementById('resourceTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'resources');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function updateResource(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const resourceId = document.getElementById('updateResourceId').value.trim();
+                const url = document.getElementById('updateResourceUrl').value.trim();
+                const description = document.getElementById('updateResourceDescription').value.trim();
+                const type = document.getElementById('updateResourceType').value.trim();
+                const topicId = parseInt(document.getElementById('updateResourceTopicId').value.trim());
+
+                if (!resourceId) {
+                    showError('Resource ID is required', 'resources');
+                    return;
+                }
+
+                const payload = {
+                    url,
+                    description,
+                    type,
+                    topicId
+                };
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.resources}/${resourceId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                showResourcesResults(data);
+                showSuccess('Resource updated successfully!');
+
+                // Clear form
+                document.getElementById('updateResourceId').value = '';
+                document.getElementById('updateResourceUrl').value = '';
+                document.getElementById('updateResourceDescription').value = '';
+                document.getElementById('updateResourceType').value = '';
+                document.getElementById('updateResourceTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'resources');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function deleteResource(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const resourceId = document.getElementById('deleteResourceId').value.trim();
+
+                if (!resourceId) {
+                    showError('Resource ID is required', 'resources');
+                    return;
+                }
+
+                // Confirm deletion
+                if (!confirm(`Are you sure you want to delete resource with ID ${resourceId}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.resources}/${resourceId}`, {
+                    method: 'DELETE'
+                });
+
+                showResourcesResults(data);
+                showSuccess('Resource deleted successfully!');
+
+                // Clear form
+                document.getElementById('deleteResourceId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'resources');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function createTopic(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const name = document.getElementById('topicName').value.trim();
+                const content = document.getElementById('topicContent').value.trim();
+                const parentTopicIdInput = document.getElementById('parentTopicId').value.trim();
+
+                const payload = {
+                    name,
+                    content,
+                    parentTopicId: parentTopicIdInput ? parseInt(parentTopicIdInput) : null
+                };
+
+                const data = await makeApiRequest(API_ENDPOINTS.topics, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                showTopicsResults(data);
+                showSuccess('Topic created successfully!');
+
+                // Clear form
+                document.getElementById('topicName').value = '';
+                document.getElementById('topicContent').value = '';
+                document.getElementById('parentTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function getTopic(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const topicId = document.getElementById('getTopicId').value.trim();
+
+                if (!topicId) {
+                    showError('Topic ID is required', 'topics');
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.topics}/${topicId}`);
+                showTopicsResults(data);
+                showSuccess('Topic fetched successfully!');
+
+                // Clear form
+                document.getElementById('getTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function getTopicByVersion(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const topicId = document.getElementById('getVersionTopicId').value.trim();
+                const version = document.getElementById('getTopicVersion').value.trim();
+
+                if (!topicId || !version) {
+                    showError('Both Topic ID and Version are required', 'topics');
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.topics}/${topicId}/version/${version}`);
+                showTopicsResults(data);
+                showSuccess('Topic version fetched successfully!');
+
+                // Clear form
+                document.getElementById('getVersionTopicId').value = '';
+                document.getElementById('getTopicVersion').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function getShortestPath(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const fromTopicId = document.getElementById('fromTopicId').value.trim();
+                const toTopicId = document.getElementById('toTopicId').value.trim();
+
+                if (!fromTopicId || !toTopicId) {
+                    showError('Both From Topic ID and To Topic ID are required', 'topics');
+                    return;
+                }
+
+                if (fromTopicId === toTopicId) {
+                    showError('From Topic ID and To Topic ID must be different', 'topics');
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.topics}/shortest-path/${fromTopicId}/${toTopicId}`);
+                showShortestPathResults(data);
+                showSuccess('Shortest path found successfully!');
+
+                // Clear form
+                document.getElementById('fromTopicId').value = '';
+                document.getElementById('toTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function updateTopic(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const topicVersionId = document.getElementById('updateTopicVersionId').value.trim();
+                const name = document.getElementById('updateTopicName').value.trim();
+                const content = document.getElementById('updateTopicContent').value.trim();
+                const parentTopicIdInput = document.getElementById('updateParentTopicId').value.trim();
+
+                // Validate required fields
+                if (!topicVersionId || !name || !content) {
+                    showError('Topic Version ID, Name, and Content are all required', 'topics');
+                    return;
+                }
+
+                // First, get the current topic version to retrieve existing values
+                const currentTopicVersion = await makeApiRequest(`${API_ENDPOINTS.topics}/${topicVersionId}`);
+
+                // Extract the current topic data from the response
+                let currentData = currentTopicVersion;
+                if (currentTopicVersion.data) {
+                    currentData = currentTopicVersion.data;
+                }
+
+                if (!currentData || !currentData.id) {
+                    showError('Could not retrieve current topic version data', 'topics');
+                    return;
+                }
+
+                // Build payload using existing values for ID fields and new values for content
+                const payload = {
+                    id: currentData.id,                    // Keep existing TopicVersion ID
+                    topicId: currentData.topicId,          // Keep existing Topic ID
+                    version: currentData.version,          // Keep existing version number
+                    name: name,                            // New name
+                    content: content,                      // New content
+                    parentTopicId: parentTopicIdInput ? parseInt(parentTopicIdInput) : null  // New parent (or null)
+                };
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.topics}/${currentData.topicId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                showTopicsResults(data);
+                showSuccess('Topic version updated successfully!');
+
+                // Clear form
+                document.getElementById('updateTopicVersionId').value = '';
+                document.getElementById('updateTopicName').value = '';
+                document.getElementById('updateTopicContent').value = '';
+                document.getElementById('updateParentTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        async function deleteTopic(event) {
+            event.preventDefault();
+
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            const originalText = showLoading(submitButton);
+
+            try {
+                const topicId = document.getElementById('deleteTopicId').value.trim();
+
+                if (!topicId) {
+                    showError('Topic ID is required', 'topics');
+                    return;
+                }
+
+                // Confirm deletion
+                if (!confirm(`Are you sure you want to delete topic with ID ${topicId}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                const data = await makeApiRequest(`${API_ENDPOINTS.topics}/${topicId}`, {
+                    method: 'DELETE'
+                });
+
+                // For delete operation, just show the success message and clear results
+                showResults('topics', data);
+                showSuccess('Topic deleted successfully!');
+
+                // Clear form
+                document.getElementById('deleteTopicId').value = '';
+
+            } catch (error) {
+                showError(error.message, 'topics');
+            } finally {
+                hideLoading(submitButton, originalText);
+            }
+        }
+
+        // Check connection on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkConnection();
+        });
+    </script>
+</body>
+</html>

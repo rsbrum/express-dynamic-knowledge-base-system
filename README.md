@@ -1,44 +1,117 @@
+### Instructions
+```bash
+npm install
+```
 
-### IN PROGRESS
+```bash
+npm run dev
+```
 
+To test the application, I created a simple interface. Open `./app.html` and play around with the functionality.
 
-## Instructions
+If you don't want to use the interface, you can attach a header `x-user-role` to your request, with one of the following user roles `Admin`, `Editor`, `Viewer`
 
-To install `npm install`
-To run `npm run dev`
+## Architecture Overview
 
-## Architecture
+I took inspiration from NestJS to build a modular architecture.
 
-I took inspiration from NestJS to design this application in a modular and scalable way.
+### Directory Structure
 
-Code that is related to application configuration or shared between features live inside the `./src/core` directory.
-Code that is related to application functionality live inside the `./src/features` directoy.
-Type definitions, interfaces, enums, etc live inside the `./src/lib` directory.
-Tests live inside the `./src/tests` directory.
+```
+src/
+├── core/           # Application configuration and shared utilities
+├── features/       # Feature-specific modules and business logic
+├── lib/           # Type definitions, interfaces, and enums
+└── tests/         # Tests
+```
 
-A feature is divided in 4 main modules:
-  - repository: Responsible for database communication
-	- service: Responsible  for data manipulation and business logic
-	- controller: Entry point for requests
-	- routes: Responsible for route endpoint registration and dependency injection
+### Feature Module Structure
 
-The routes module of a feature is imported into `registerRoutes`, which wires everything up when `registerRoutes` is called when an instace of `App` is created .
+Features are divided in four modules:
 
-## Design
+- **Repository**: database communication and data persistence
+- **Service**: business logic and data manipulation
+- **Controller**: entry point for HTTP requests
+- **Routes**: Manages endpoint registration and dependency injection
 
-I created an additional entity called `TopicVersion` to help manage versions of topics. The entity `Topic` now only holds the identity of a topic, and `TopicVersion` holds the topic information, making it easier to
-manage versionin.
+The application bootstraps by importing feature route modules into `registerRoutes()`, which is called during `App` instantiation to wire up all dependencies.
 
-## Database
+## Data Model Design
 
-The application uses SQLite and TypeORM for database interactions.
+### Topic Versioning System
 
-## Authentication
+Altough this was no specified in the assignment document, I decided to create a new entity called TopicVersion to better manage different versions of topics.
 
-I chose to keep authentication as simple as possible. It is handled by `auth.middleware`. You are not required to be authenticated to test the application. You simply need to attach a header `x-user-role` to your request with one of the possible user roles (Admin, Editor, Viewer) and it will attach one of the users to the request.
+- **`Topic`**: topic identity
+- **`TopicVersion`**: versioned content and topic information
 
-## User Roles
+### Database
 
-ADMIN: Can do everything and manage users.
-EDITOR: Can view, create and update Resources and Topics, but cannot delete Resources or Topics.
-VIEWER: Can only view Resources and Topics.
+SQLite and TypeORM
+
+## Security & Access Control
+
+### Authentication
+I chose to keep authentication very simple. It is handled by `auth.middleware`. A request must contain a `x-user-role` header, which must be one of the available user roles `Admin`, `Editor`, `Viewer`. The middleware then associates a user based on the provided role.
+
+### Authorization
+
+Access control is managed through `permissions.middleware` with role-based permissions:
+
+#### User Roles & Permissions
+
+ADMIN: Can create, view, update and delete Topics and Resource and Users.
+EDITOR: Can create, view and update Topics and Resources. Cannot delete Topics or Resources. Cannot manage users.
+VIEWER: Can only view Topics and Resources
+
+## API Endpoints
+
+All endpoints require authentication via the `x-user-role` header with values: `Admin`, `Editor`, or `Viewer`.
+
+### Users API (`/users`)
+
+| Method | Endpoint | Permission Required | Description |
+|--------|----------|-------------------|-------------|
+| `GET` | `/users` | `CAN_MANAGE_USERS` | Get all users |
+| `POST` | `/users` | `CAN_MANAGE_USERS` | Create a new user |
+| `PUT` | `/users/:id` | `CAN_MANAGE_USERS` | Update user by ID |
+| `DELETE` | `/users/:id` | `CAN_MANAGE_USERS` | Delete user by ID |
+
+**Access**: Admin only
+
+### Topics API (`/topics`)
+
+| Method | Endpoint | Permission Required | Description |
+|--------|----------|-------------------|-------------|
+| `GET` | `/topics` | `CAN_VIEW` | Get all topics |
+| `GET` | `/topics/:id` | `CAN_VIEW` | Get topic by ID |
+| `GET` | `/topics/:id/version/:version` | `CAN_VIEW` | Get specific version of a topic |
+| `GET` | `/topics/shortest-path/:fromId/:toId` | `CAN_VIEW` | Find shortest path between two topics |
+| `POST` | `/topics` | `CAN_EDIT` | Create a new topic |
+| `PUT` | `/topics/:id` | `CAN_EDIT` | Update topic by ID |
+| `DELETE` | `/topics/:id` | `CAN_DELETE` | Delete topic by ID |
+
+**Access**:
+- View operations: Admin, Editor, Viewer
+- Create/Update operations: Admin, Editor
+- Delete operations: Admin only
+
+### Resources API (`/resources`)
+
+| Method | Endpoint | Permission Required | Description |
+|--------|----------|-------------------|-------------|
+| `GET` | `/resources` | `CAN_VIEW` | Get all resources |
+| `POST` | `/resources` | `CAN_EDIT` | Create a new resource |
+| `PUT` | `/resources/:id` | `CAN_EDIT` | Update resource by ID |
+| `DELETE` | `/resources/:id` | `CAN_DELETE` | Delete resource by ID |
+
+**Access**:
+- View operations: Admin, Editor, Viewer
+- Create/Update operations: Admin, Editor
+- Delete operations: Admin only
+
+### Root Endpoint
+
+| Method | Endpoint | Permission Required | Description |
+|--------|----------|-------------------|-------------|
+| `GET` | `/` | None | Health check - returns "Hello World" |
